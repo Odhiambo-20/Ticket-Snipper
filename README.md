@@ -31,6 +31,7 @@ bun run start-web
 # Step 5: Start iOS preview
 # Option A (recommended):
 bun run start  # then press "i" in the terminal to open iOS Simulator
+bunx expo start -p pvxo8vj6  # then press "i" in the terminal to open Android  Simulator
 # Option B (if supported by your environment):
 bun run start -- --ios
 ```
