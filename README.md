@@ -1,20 +1,17 @@
-# Welcome to your Ticket SNipper  app
+# Welcome to Your Ticket Snipper App
 
-## Project info
+## Project Info
 
 This is a native cross-platform mobile app.
 
-**Platform**: Native iOS & Android app, exportable to web
+**Platform**: Native iOS & Android app, exportable to web  
 **Framework**: Expo Router + React Native
 
+### Use Your Preferred Code Editor
 
-### **Use your preferred code editor**
+If you want to work locally using your own code editor, you can clone this repo and push changes. Pushed changes will be reflected in your project environment.
 
-If you want to work locally using your own code editor, you can clone this repo and push changes. Pushed changes will also be reflected in Rork.
-
-If you are new to coding and unsure which editor to use, we recommend Cursor. If you're familiar with terminals, try Claude Code.
-
-The only requirement is having Node.js & Bun installed - [install Node.js with nvm](https://github.com/nvm-sh/nvm) and [install Bun](https://bun.sh/docs/installation)
+If you are new to coding and unsure which editor to use, we recommend Cursor. The only requirement is having Node.js & Bun installed - [install Node.js with nvm](https://github.com/nvm-sh/nvm) and [install Bun](https://bun.sh/docs/installation).
 
 Follow these steps:
 
@@ -28,7 +25,7 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 bun i
 
-# Step 4: Start the instant web preview of your Rork app in your browser, with auto-reloading of your changes
+# Step 4: Start the instant web preview of your app in your browser, with auto-reloading of your changes
 bun run start-web
 
 # Step 5: Start iOS preview
@@ -38,49 +35,49 @@ bun run start  # then press "i" in the terminal to open iOS Simulator
 bun run start -- --ios
 ```
 
-### **Edit a file directly in GitHub**
+### Edit a File Directly in GitHub
 
 - Navigate to the desired file(s).
 - Click the "Edit" button (pencil icon) at the top right of the file view.
 - Make your changes and commit the changes.
 
-## What technologies are used for this project?
+## What Technologies Are Used for This Project?
 
 This project is built with the most popular native mobile cross-platform technical stack:
 
-- **React Native** - Cross-platform native mobile development framework created by Meta and used for Instagram, Airbnb, and lots of top apps in the App Store
-- **Expo** - Extension of React Native + platform used by Discord, Shopify, Coinbase, Telsa, Starlink, Eightsleep, and more
-- **Expo Router** - File-based routing system for React Native with support for web, server functions and SSR
-- **TypeScript** - Type-safe JavaScript
-- **React Query** - Server state management
-- **Lucide React Native** - Beautiful icons
+- **React Native** - Cross-platform native mobile development framework created by Meta and used for Instagram, Airbnb, and many top apps in the App Store.
+- **Expo** - Extension of React Native + platform used by Discord, Shopify, Coinbase, Tesla, Starlink, Eight Sleep, and more.
+- **Expo Router** - File-based routing system for React Native with support for web, server functions, and SSR.
+- **TypeScript** - Type-safe JavaScript.
+- **React Query** - Server state management.
+- **Lucide React Native** - Beautiful icons.
 
-## How can I test my app?
+## How Can I Test My App?
 
-### **On your phone (Recommended)**
+### On Your Phone (Recommended)
 
-1. **iOS**: Download the [Rork app from the App Store](https://apps.apple.com/app/rork) or [Expo Go](https://apps.apple.com/app/expo-go/id982107779)
-2. **Android**: Download the [Expo Go app from Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
-3. Run `bun run start` and scan the QR code from your development server
+1. **iOS**: Download [Expo Go](https://apps.apple.com/app/expo-go/id982107779) from the App Store.
+2. **Android**: Download the [Expo Go app](https://play.google.com/store/apps/details?id=host.exp.exponent) from Google Play.
+3. Run `bun run start` and scan the QR code from your development server.
 
-### **In your browser**
+### In Your Browser
 
 Run `bun start-web` to test in a web browser. Note: The browser preview is great for quick testing, but some native features may not be available.
 
-### **iOS Simulator / Android Emulator**
+### iOS Simulator / Android Emulator
 
-You can test Rork apps in Expo Go or Rork iOS app. You don't need XCode or Android Studio for most features.
+You can test apps in Expo Go. You don’t need Xcode or Android Studio for most features.
 
-**When do you need Custom Development Builds?**
+**When Do You Need Custom Development Builds?**
 
-- Native authentication (Face ID, Touch ID, Apple Sign In)
-- In-app purchases and subscriptions
-- Push notifications
-- Custom native modules
+- Native authentication (Face ID, Touch ID, Apple Sign In).
+- In-app purchases and subscriptions.
+- Push notifications.
+- Custom native modules.
 
 Learn more: [Expo Custom Development Builds Guide](https://docs.expo.dev/develop/development-builds/introduction/)
 
-If you have XCode (iOS) or Android Studio installed:
+If you have Xcode (iOS) or Android Studio installed:
 
 ```bash
 # iOS Simulator
@@ -90,9 +87,9 @@ bun run start -- --ios
 bun run start -- --android
 ```
 
-## How can I deploy this project?
+## How Can I Deploy This Project?
 
-### **Publish to App Store (iOS)**
+### Publish to App Store (iOS)
 
 1. **Install EAS CLI**:
 
@@ -119,7 +116,7 @@ bun run start -- --android
 
 For detailed instructions, visit [Expo's App Store deployment guide](https://docs.expo.dev/submit/ios/).
 
-### **Publish to Google Play (Android)**
+### Publish to Google Play (Android)
 
 1. **Build for Android**:
 
@@ -134,7 +131,7 @@ For detailed instructions, visit [Expo's App Store deployment guide](https://doc
 
 For detailed instructions, visit [Expo's Google Play deployment guide](https://docs.expo.dev/submit/android/).
 
-### **Publish as a Website**
+### Publish as a Website
 
 Your React Native app can also run on the web:
 
@@ -152,20 +149,20 @@ Your React Native app can also run on the web:
 
 Alternative web deployment options:
 
-- **Vercel**: Deploy directly from your GitHub repository
-- **Netlify**: Connect your GitHub repo to Netlify for automatic deployments
+- **Vercel**: Deploy directly from your GitHub repository.
+- **Netlify**: Connect your GitHub repo to Netlify for automatic deployments.
 
 ## App Features
 
 This template includes:
 
-- **Cross-platform compatibility** - Works on iOS, Android, and Web
-- **File-based routing** with Expo Router
-- **Tab navigation** with customizable tabs
-- **Modal screens** for overlays and dialogs
-- **TypeScript support** for better development experience
-- **Async storage** for local data persistence
-- **Vector icons** with Lucide React Native
+- **Cross-platform compatibility** - Works on iOS, Android, and Web.
+- **File-based routing** with Expo Router.
+- **Tab navigation** with customizable tabs.
+- **Modal screens** for overlays and dialogs.
+- **TypeScript support** for a better development experience.
+- **Async storage** for local data persistence.
+- **Vector icons** with Lucide React Native.
 
 ## Project Structure
 
@@ -189,14 +186,14 @@ This template includes:
 
 For advanced native features, you'll need to create a Custom Development Build instead of using Expo Go.
 
-### **When do you need a Custom Development Build?**
+### When Do You Need a Custom Development Build?
 
-- **Native Authentication**: Face ID, Touch ID, Apple Sign In, Google Sign In
-- **In-App Purchases**: App Store and Google Play subscriptions
-- **Advanced Native Features**: Third-party SDKs, platform-specifc features (e.g. Widgets on iOS)
-- **Background Processing**: Background tasks, location tracking
+- **Native Authentication**: Face ID, Touch ID, Apple Sign In, Google Sign In.
+- **In-App Purchases**: App Store and Google Play subscriptions.
+- **Advanced Native Features**: Third-party SDKs, platform-specific features (e.g., Widgets on iOS).
+- **Background Processing**: Background tasks, location tracking.
 
-### **Creating a Custom Development Build**
+### Creating a Custom Development Build
 
 ```bash
 # Install EAS CLI
@@ -221,15 +218,15 @@ bun start --dev-client
 
 ## Advanced Features
 
-### **Add a Database**
+### Add a Database
 
 Integrate with backend services:
 
-- **Supabase** - PostgreSQL database with real-time features
-- **Firebase** - Google's mobile development platform
-- **Custom API** - Connect to your own backend
+- **Supabase** - PostgreSQL database with real-time features.
+- **Firebase** - Google's mobile development platform.
+- **Custom API** - Connect to your own backend.
 
-### **Add Authentication**
+### Add Authentication
 
 Implement user authentication:
 
@@ -244,14 +241,14 @@ Implement user authentication:
 - **Apple Sign In** - Native Apple authentication - [Implementation Guide](https://docs.expo.dev/versions/latest/sdk/apple-authentication/)
 - **Google Sign In** - Native Google authentication - [Setup Guide](https://docs.expo.dev/guides/google-authentication/)
 
-### **Add Push Notifications**
+### Add Push Notifications
 
 Send notifications to your users:
 
-- **Expo Notifications** - Cross-platform push notifications
-- **Firebase Cloud Messaging** - Advanced notification features
+- **Expo Notifications** - Cross-platform push notifications.
+- **Firebase Cloud Messaging** - Advanced notification features.
 
-### **Add Payments**
+### Add Payments
 
 Monetize your app:
 
@@ -270,38 +267,35 @@ Monetize your app:
 - **Superwall** - Paywall A/B testing and optimization - [React Native SDK](https://docs.superwall.com/docs/react-native)
 - **Adapty** - Mobile subscription analytics and paywalls - [Expo Integration](https://docs.adapty.io/docs/expo)
 
-## I want to use a custom domain - is that possible?
+## I Want to Use a Custom Domain - Is That Possible?
 
 For web deployments, you can use custom domains with:
 
-- **EAS Hosting** - Custom domains available on paid plans
-- **Netlify** - Free custom domain support
-- **Vercel** - Custom domains with automatic SSL
+- **EAS Hosting** - Custom domains available on paid plans.
+- **Netlify** - Free custom domain support.
+- **Vercel** - Custom domains with automatic SSL.
 
 For mobile apps, you'll configure your app's deep linking scheme in `app.json`.
 
 ## Troubleshooting
 
-### **App not loading on device?**
+### App Not Loading on Device?
 
-1. Make sure your phone and computer are on the same WiFi network
-2. Try using tunnel mode: `bun start -- --tunnel`
-3. Check if your firewall is blocking the connection
+1. Make sure your phone and computer are on the same WiFi network.
+2. Try using tunnel mode: `bun start -- --tunnel`.
+3. Check if your firewall is blocking the connection.
 
-### **Build failing?**
+### Build Failing?
 
-1. Clear your cache: `bunx expo start --clear`
-2. Delete `node_modules` and reinstall: `rm -rf node_modules && bun install`
-3. Check [Expo's troubleshooting guide](https://docs.expo.dev/troubleshooting/build-errors/)
+1. Clear your cache: `bunx expo start --clear`.
+2. Delete `node_modules` and reinstall: `rm -rf node_modules && bun install`.
+3. Check [Expo's troubleshooting guide](https://docs.expo.dev/troubleshooting/build-errors/).
 
-### **Need help with native features?**
+### Need Help with Native Features?
 
-- Check [Expo's documentation](https://docs.expo.dev/) for native APIs
-- Browse [React Native's documentation](https://reactnative.dev/docs/getting-started) for core components
-- Visit [Rork's FAQ](https://rork.com/faq) for platform-specific questions
+- Check [Expo's documentation](https://docs.expo.dev/) for native APIs.
+- Browse [React Native's documentation](https://reactnative.dev/docs/getting-started) for core components.
 
-## About Rork
+## About the Project
 
-Rork builds fully native mobile apps using React Native and Expo - the same technology stack used by Discord, Shopify, Coinbase, Instagram, and nearly 30% of the top 100 apps on the App Store.
-
-Your Rork app is production-ready and can be published to both the App Store and Google Play Store. You can also export your app to run on the web, making it truly cross-platform.
+This app is built using React Native and Expo, the same technology stack used by Discord, Shopify, Coinbase, Instagram, and nearly 30% of the top 100 apps on the App Store. It is production-ready and can be published to both the App Store and Google Play Store, with the option to export to the web for true cross-platform functionality.
