@@ -42,14 +42,6 @@
         { "origin": "https://rork.com/" }
       ],
       "expo-font",
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "react-native",
-          "organization": "meru-university-k0"
-        }
-      ],
       "expo-notifications",
       [
         "expo-task-manager",
