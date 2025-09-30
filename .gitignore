@@ -35,3 +35,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 .vercel
+
+.env.local
+google-services.json
+.env

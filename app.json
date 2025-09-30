@@ -15,14 +15,23 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.rork.ticket-sniper-mobile-app"
+      "bundleIdentifier": "app.rork.ticketsnipermobileapp",
+      "backgroundModes": ["fetch", "remote-notification", "processing"]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.rork.ticket-sniper-mobile-app"
+      "package": "app.rork.ticketsnipermobileapp",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -30,13 +39,34 @@
     "plugins": [
       [
         "expo-router",
+        { "origin": "https://rork.com/" }
+      ],
+      "expo-font",
+      [
+        "@sentry/react-native/expo",
         {
-          "origin": "https://rork.com/"
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "meru-university-k0"
+        }
+      ],
+      "expo-notifications",
+      [
+        "expo-task-manager",
+        {
+          "android": {
+            "background": {
+              "title": "Ticket Sniper is running",
+              "description": "Monitoring Chinese ticket releases"
+            }
+          }
         }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true
+    "experiments": { "typedRoutes": true },
+    "extra": {
+      "router": { "origin": "https://rork.com/" },
+      "eas": { "projectId": "7655a635-1d7f-4b22-b08b-c7a027371184" }
     }
   }
 }

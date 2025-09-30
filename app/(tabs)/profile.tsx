@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,16 +12,41 @@ export default function ProfileScreen() {
   const [formData, setFormData] = useState(profile);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const handleSave = () => {
-    updateProfile(formData);
+  const handleSave = useCallback(() => {
+    // Extract last 4 digits from card number
+    const last4 = formData.cardNumber.replace(/\s/g, '').slice(-4);
+    
+    updateProfile({
+      ...formData,
+      cardLast4: last4
+    });
     setIsEditing(false);
     setShowSuccessModal(true);
-  };
+  }, [formData, updateProfile]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setFormData(profile);
     setIsEditing(false);
-  };
+  }, [profile]);
+
+  const updateField = useCallback((field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Format card number with spaces
+  const formatCardNumber = useCallback((text: string) => {
+    const cleaned = text.replace(/\s/g, '');
+    const formatted = cleaned.match(/.{1,4}/g)?.join(' ') || cleaned;
+    return formatted;
+  }, []);
+
+  const handleCardNumberChange = useCallback((text: string) => {
+    const formatted = formatCardNumber(text);
+    updateField('cardNumber', formatted);
+  }, [formatCardNumber, updateField]);
+
+  // Get display card number (either full or masked)
+  const displayCardNumber = formData.cardNumber || `•••• •••• •••• ${formData.cardLast4}`;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -35,7 +60,11 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
           
@@ -46,7 +75,7 @@ export default function ProfileScreen() {
               <TextInput
                 style={styles.input}
                 value={formData.fullName}
-                onChangeText={(text) => setFormData({ ...formData, fullName: text })}
+                onChangeText={(text) => updateField('fullName', text)}
                 placeholder="Enter your full name"
                 placeholderTextColor="#666666"
                 editable={isEditing}
@@ -61,11 +90,12 @@ export default function ProfileScreen() {
               <TextInput
                 style={styles.input}
                 value={formData.email}
-                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                onChangeText={(text) => updateField('email', text)}
                 placeholder="Enter your email"
                 placeholderTextColor="#666666"
                 keyboardType="email-address"
                 editable={isEditing}
+                autoCapitalize="none"
               />
             </View>
           </View>
@@ -77,7 +107,7 @@ export default function ProfileScreen() {
               <TextInput
                 style={styles.input}
                 value={formData.phone}
-                onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                onChangeText={(text) => updateField('phone', text)}
                 placeholder="Enter your phone number"
                 placeholderTextColor="#666666"
                 keyboardType="phone-pad"
@@ -97,7 +127,7 @@ export default function ProfileScreen() {
               <TextInput
                 style={styles.input}
                 value={formData.address}
-                onChangeText={(text) => setFormData({ ...formData, address: text })}
+                onChangeText={(text) => updateField('address', text)}
                 placeholder="Enter your address"
                 placeholderTextColor="#666666"
                 editable={isEditing}
@@ -112,7 +142,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={[styles.input, { paddingLeft: 16 }]}
                   value={formData.city}
-                  onChangeText={(text) => setFormData({ ...formData, city: text })}
+                  onChangeText={(text) => updateField('city', text)}
                   placeholder="City"
                   placeholderTextColor="#666666"
                   editable={isEditing}
@@ -126,7 +156,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={[styles.input, { paddingLeft: 16 }]}
                   value={formData.zipCode}
-                  onChangeText={(text) => setFormData({ ...formData, zipCode: text })}
+                  onChangeText={(text) => updateField('zipCode', text)}
                   placeholder="ZIP"
                   placeholderTextColor="#666666"
                   editable={isEditing}
@@ -148,7 +178,7 @@ export default function ProfileScreen() {
                 <CreditCard color="#FFFFFF" size={24} />
                 <Text style={styles.cardType}>VISA</Text>
               </View>
-              <Text style={styles.cardNumber}>•••• •••• •••• {formData.cardLast4}</Text>
+              <Text style={styles.cardNumber}>{displayCardNumber}</Text>
               <View style={styles.cardFooter}>
                 <Text style={styles.cardHolder}>{formData.fullName}</Text>
                 <Text style={styles.cardExpiry}>{formData.cardExpiry}</Text>
@@ -165,7 +195,7 @@ export default function ProfileScreen() {
                   <TextInput
                     style={styles.input}
                     value={formData.cardNumber}
-                    onChangeText={(text) => setFormData({ ...formData, cardNumber: text })}
+                    onChangeText={handleCardNumberChange}
                     placeholder="1234 5678 9012 3456"
                     placeholderTextColor="#666666"
                     keyboardType="numeric"
@@ -181,7 +211,7 @@ export default function ProfileScreen() {
                     <TextInput
                       style={[styles.input, { paddingLeft: 16 }]}
                       value={formData.cardExpiry}
-                      onChangeText={(text) => setFormData({ ...formData, cardExpiry: text })}
+                      onChangeText={(text) => updateField('cardExpiry', text)}
                       placeholder="MM/YY"
                       placeholderTextColor="#666666"
                       maxLength={5}
@@ -195,7 +225,7 @@ export default function ProfileScreen() {
                     <TextInput
                       style={[styles.input, { paddingLeft: 16 }]}
                       value={formData.cardCvv}
-                      onChangeText={(text) => setFormData({ ...formData, cardCvv: text })}
+                      onChangeText={(text) => updateField('cardCvv', text)}
                       placeholder="123"
                       placeholderTextColor="#666666"
                       keyboardType="numeric"
