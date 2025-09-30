@@ -51,6 +51,7 @@ interface Show {
   sections: string[];
   imageUrl?: string;
   eventUrl?: string;
+  isAvailable: boolean; // New field to indicate availability
 }
 
 interface ApiResponse {
@@ -134,7 +135,7 @@ const fetchAllEvents = async (params: {
           per_page: perPage,
           sort: 'datetime_local.asc',
           'datetime_local.gte': new Date().toISOString(),
-          'listing_count.gt': 0, // Only fetch events with available tickets
+          // Removed listing_count.gt filter to fetch all events
         },
         timeout: 10000,
       });
@@ -207,7 +208,6 @@ router.get('/', verifyApiKey, async (req, res) => {
           per_page: per_page,
           sort: 'datetime_local.asc',
           'datetime_local.gte': new Date().toISOString(),
-          'listing_count.gt': 0, // Only fetch events with available tickets
         },
         timeout: 10000,
       });
@@ -222,6 +222,7 @@ router.get('/', verifyApiKey, async (req, res) => {
       const lowestPrice = event.stats?.lowest_price ?? 0;
       const averagePrice = event.stats?.average_price ?? 0;
       const price = lowestPrice || averagePrice || 0;
+      const isAvailable = listingCount > 0 && price > 0;
 
       return {
         id: event.id.toString(),
@@ -236,21 +237,31 @@ router.get('/', verifyApiKey, async (req, res) => {
         sections: ['General Admission'],
         imageUrl: primaryPerformer?.image || '',
         eventUrl: event.url || '',
+        isAvailable, // Indicate if the show is purchasable
       };
     });
 
-    // Filter shows with valid listings and prices
-    const validShows = shows.filter(show => show.availableSeats > 0 && show.price > 0);
+    // Log why shows might be filtered
+    const validShows = shows.filter(show => show.isAvailable);
+    console.log(`📊 Total events: ${shows.length}, Available shows: ${validShows.length}`);
+    if (validShows.length === 0 && shows.length > 0) {
+      console.warn('⚠️ No shows are available due to missing listing_count or price');
+      shows.forEach(show => {
+        if (!show.isAvailable) {
+          console.log(`🚫 Show ${show.title} (ID: ${show.id}) unavailable - Seats: ${show.availableSeats}, Price: ${show.price}`);
+        }
+      });
+    }
 
     res.json({
       success: true,
-      shows: validShows,
-      total: validShows.length,
+      shows: shows, // Return all shows, available or not
+      total: shows.length,
       timestamp: new Date().toISOString(),
     });
 
-    console.log(`✅ Returning ${validShows.length} events to client`);
-    console.log(`📊 Stats breakdown: ${validShows.length} with listings, ${validShows.filter(s => s.price > 0).length} with prices`);
+    console.log(`✅ Returning ${shows.length} events to client`);
+    console.log(`📊 Stats breakdown: ${validShows.length} available, ${shows.length - validShows.length} unavailable`);
   } catch (error: unknown) {
     console.error('❌ Error fetching SeatGeek events:', error);
     if (isAxiosError(error)) {
@@ -299,6 +310,7 @@ router.get('/:id', verifyApiKey, async (req, res) => {
     const lowestPrice = event.stats?.lowest_price ?? 0;
     const averagePrice = event.stats?.average_price ?? 0;
     const price = lowestPrice || averagePrice || 0;
+    const isAvailable = listingCount > 0 && price > 0;
 
     const show: Show = {
       id: event.id.toString(),
@@ -313,14 +325,11 @@ router.get('/:id', verifyApiKey, async (req, res) => {
       sections: ['General Admission'],
       imageUrl: primaryPerformer?.image || '',
       eventUrl: event.url || '',
+      isAvailable,
     };
 
-    if (show.availableSeats === 0 || show.price === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Show unavailable',
-        message: `Show ${show.title} has no available tickets or valid price`,
-      });
+    if (!show.isAvailable) {
+      console.warn(`⚠️ Show ${show.title} (ID: ${id}) is unavailable - Seats: ${show.availableSeats}, Price: ${show.price}`);
     }
 
     res.json({

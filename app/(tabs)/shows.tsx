@@ -36,6 +36,7 @@ interface ApiShow {
   sections: string[];
   imageUrl?: string;
   eventUrl?: string;
+  isAvailable: boolean; // New field to indicate availability
 }
 
 interface ApiResponse {
@@ -67,6 +68,7 @@ export default function ShowsScreen() {
         await SplashScreen.hideAsync();
       } catch (e) {
         console.warn('Splash screen error:', e);
+        setError('Failed to initialize app');
         setAppReady(true);
         await SplashScreen.hideAsync();
       }
@@ -123,7 +125,7 @@ export default function ShowsScreen() {
               ticketUrl: apiShow.eventUrl || '',
               preferences: {
                 section: apiShow.sections[0] || 'General',
-                maxPrice: apiShow.price,
+                maxPrice: apiShow.price || 100,
                 quantity: 1,
               },
               isActive: false,
@@ -150,7 +152,7 @@ export default function ShowsScreen() {
   };
 
   const handleShowPress = (show: ApiShow) => {
-    if (show.availableSeats === 0 || show.price === 0) {
+    if (!show.isAvailable) {
       Alert.alert('Show Unavailable', `No tickets or valid price available for ${show.title}.`);
       notify.send(NotificationType.ERROR, `Show ${show.title} is unavailable`);
       return;
@@ -172,7 +174,7 @@ export default function ShowsScreen() {
         notify.send(NotificationType.ERROR, `Show with ID ${showId} not found`);
         continue;
       }
-      if (show.availableSeats === 0 || show.price === 0) {
+      if (!show.isAvailable) {
         updateAutomationResult(showId, {
           success: false,
           message: `Show ${show.title} has no available tickets or valid price`,
@@ -348,14 +350,14 @@ export default function ShowsScreen() {
               key={`${show.id}-${index}`}
               activeOpacity={0.8}
               onPress={() => handleShowPress(show)}
-              disabled={show.availableSeats === 0 || show.price === 0}
+              disabled={!show.isAvailable}
             >
               <View style={styles.showCard}>
                 <LinearGradient
                   colors={
-                    show.availableSeats === 0 || show.price === 0
-                      ? ['rgba(255,59,130,0.1)', 'rgba(255,59,130,0.05)']
-                      : ['rgba(0,212,255,0.1)', 'rgba(0,255,136,0.05)']
+                    show.isAvailable
+                      ? ['rgba(0,212,255,0.1)', 'rgba(0,255,136,0.05)']
+                      : ['rgba(255,59,130,0.1)', 'rgba(255,59,130,0.05)']
                   }
                   style={styles.showGradient}
                 >
@@ -366,7 +368,9 @@ export default function ShowsScreen() {
                     </View>
                     <View style={styles.priceContainer}>
                       <Text style={styles.priceLabel}>Starting Price</Text>
-                      <Text style={styles.priceValue}>${show.price.toFixed(2)}</Text>
+                      <Text style={[styles.priceValue, !show.isAvailable && styles.unavailablePrice]}>
+                        {show.price > 0 ? `$${show.price.toFixed(2)}` : 'N/A'}
+                      </Text>
                     </View>
                   </View>
 
@@ -392,14 +396,14 @@ export default function ShowsScreen() {
                     <View
                       style={[
                         styles.availabilityBadge,
-                        { backgroundColor: show.availableSeats > 0 && show.price > 0 ? '#00FF88' : '#FF3B82' },
+                        { backgroundColor: show.isAvailable ? '#00FF88' : '#FF3B82' },
                       ]}
                     >
                       <Text style={styles.availabilityText}>
-                        {show.availableSeats > 0 && show.price > 0 ? `${show.availableSeats} tickets` : 'UNAVAILABLE'}
+                        {show.isAvailable ? `${show.availableSeats} tickets` : 'UNAVAILABLE'}
                       </Text>
                     </View>
-                    {show.availableSeats > 0 && show.price > 0 && (
+                    {show.isAvailable && (
                       <Text style={styles.tapToSecure}>Tap to buy with Stripe ⚡</Text>
                     )}
                   </View>
@@ -628,6 +632,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#00FF88',
+  },
+  unavailablePrice: {
+    color: '#FF3B82',
+    fontStyle: 'italic',
   },
   showDetails: {
     gap: 8,
