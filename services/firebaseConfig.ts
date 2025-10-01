@@ -4,24 +4,21 @@ import { getAuth, initializeAuth, inMemoryPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyDyFImY0QArFvFEhoS2ZIQ0d_zdKB82Zsw",
+  authDomain: "ticket-snipper-a02e4.firebaseapp.com",
+  projectId: "ticket-snipper-a02e4",
+  storageBucket: "ticket-snipper-a02e4.firebasestorage.app",
+  messagingSenderId: "553385463777",
+  appId: "1:553385463777:android:9a7ec66174ddaba624cca0",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Auth with in-memory persistence
 const auth = initializeAuth(app, {
   persistence: inMemoryPersistence,
 });
 
-// Export Firebase services
-export { auth };
-export const db = getFirestore(app);
+const db = getFirestore(app);
+
+export { auth, db };
 export default app;

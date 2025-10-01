@@ -41,7 +41,7 @@ function isAxiosError(error: unknown): error is { response?: { status?: number; 
 }
 
 export class TicketMonitorService {
-  private apiUrl = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'http://10.0.2.2:3000';
+  private apiUrl = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'https://ticket-snipper-backend.vercel.app';
   private apiKey = process.env.EXPO_PUBLIC_TICKET_API_KEY || '';
   private maxRetries = 3;
   private retryDelayMs = 1000;

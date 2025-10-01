@@ -15,7 +15,7 @@ interface AutomationConfig {
 export class TicketAutomationService {
   private notificationService: NotificationService;
   private ticketMonitor: TicketMonitorService;
-  private apiUrl = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'http://10.0.2.2:3000';
+  private apiUrl = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'https://ticket-snipper-backend.vercel.app';
   private apiKey = process.env.EXPO_PUBLIC_TICKET_API_KEY || '';
   private callbacks: StoreCallback[] = [];
 

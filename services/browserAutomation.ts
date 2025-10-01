@@ -18,7 +18,7 @@ export interface PurchaseResult {
 
 export class BrowserAutomationService {
   private ticketMonitor: TicketMonitorService;
-  private backendApiUrl: string = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'http://10.0.2.2:3000';
+  private backendApiUrl: string = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'https://ticket-snipper-backend.vercel.app';
   private apiKey: string = process.env.EXPO_PUBLIC_TICKET_API_KEY || '';
 
   constructor() {

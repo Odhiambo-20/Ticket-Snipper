@@ -20,7 +20,7 @@ import { notify, NotificationType } from '@/services/notificationService';
 import { useTicketStore } from '@/store/ticketStore';
 import { useLocalSearchParams } from 'expo-router';
 
-const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'http://10.0.2.2:3000';
+const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'https://ticket-snipper-backend.vercel.app';
 const TICKET_API_KEY = process.env.EXPO_PUBLIC_TICKET_API_KEY || '';
 
 interface ApiShow {
@@ -36,7 +36,7 @@ interface ApiShow {
   sections: string[];
   imageUrl?: string;
   eventUrl?: string;
-  isAvailable: boolean; // New field to indicate availability
+  isAvailable: boolean;
 }
 
 interface ApiResponse {
