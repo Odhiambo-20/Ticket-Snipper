@@ -7,20 +7,27 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "node": "20.18.0",
+      "bun": "1.1.38",
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
       }
     },
     "preview": {
       "distribution": "internal",
+      "node": "20.18.0",
+      "bun": "1.1.38",
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
       }
     },
     "production": {
       "autoIncrement": true,
+      "node": "20.18.0",
+      "bun": "1.1.38",
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
+        "NODE_OPTIONS": "--max-old-space-size=4096"
       }
     }
   },
