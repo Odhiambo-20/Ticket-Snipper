@@ -6,7 +6,8 @@ const router = express.Router();
 const SEATGEEK_API_BASE = 'https://api.seatgeek.com/2';
 const SEATGEEK_CLIENT_ID = process.env.SEATGEEK_CLIENT_ID;
 const SEATGEEK_CLIENT_SECRET = process.env.SEATGEEK_CLIENT_SECRET;
-const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://10.0.2.2:3000';
+// Removed BACKEND_API_URL as it's not used for internal routing in this file
+// const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://10.0.2.2:3000';
 
 interface SeatGeekEvent {
   id: number;
@@ -51,7 +52,7 @@ interface Show {
   sections: string[];
   imageUrl?: string;
   eventUrl?: string;
-  isAvailable: boolean; // New field to indicate availability
+  isAvailable: boolean; // Indicates availability
 }
 
 interface ApiResponse {
@@ -72,16 +73,26 @@ interface SeatGeekSearchResponse {
 }
 
 const verifyApiKey = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const apiKey = req.headers['x-api-key'] as string;
+  const apiKey = req.headers['x-api-key'] as string | undefined;
   const expectedApiKey = process.env.TICKET_API_KEY;
 
+  console.log('🔍 API Key Validation:', {
+    receivedApiKey: apiKey,
+    expectedApiKey: expectedApiKey,
+    headerKeys: Object.keys(req.headers),
+  });
+
   if (!expectedApiKey) {
-    console.warn('Warning: TICKET_API_KEY not set in environment variables');
-    return next();
+    console.error('❌ TICKET_API_KEY not configured in environment');
+    return res.status(500).json({
+      success: false,
+      error: 'Configuration Error',
+      message: 'TICKET_API_KEY is not configured in the environment.',
+    });
   }
 
-  if (apiKey !== expectedApiKey) {
-    console.log('❌ API Key mismatch:', { received: apiKey ? 'present' : 'missing', expected: 'set' });
+  if (!apiKey || apiKey !== expectedApiKey) {
+    console.error('❌ API Key mismatch:', { received: apiKey || 'missing', expected: expectedApiKey });
     return res.status(401).json({
       success: false,
       error: 'Unauthorized',
@@ -135,7 +146,6 @@ const fetchAllEvents = async (params: {
           per_page: perPage,
           sort: 'datetime_local.asc',
           'datetime_local.gte': new Date().toISOString(),
-          // Removed listing_count.gt filter to fetch all events
         },
         timeout: 10000,
       });
@@ -162,7 +172,6 @@ const fetchAllEvents = async (params: {
       console.error(`❌ Error fetching page ${currentPage}:`, error);
       break;
     }
-
   } while (currentPage <= totalPages && currentPage <= maxPages);
 
   console.log(`✅ Finished fetching all events: ${allEvents.length} total events`);
@@ -204,8 +213,8 @@ router.get('/', verifyApiKey, async (req, res) => {
           ...getSeatGeekAuth(),
           'venue.city': location,
           type: type,
-          page: page,
-          per_page: per_page,
+          page: parseInt(page as string, 10),
+          per_page: parseInt(per_page as string, 10),
           sort: 'datetime_local.asc',
           'datetime_local.gte': new Date().toISOString(),
         },
@@ -237,11 +246,10 @@ router.get('/', verifyApiKey, async (req, res) => {
         sections: ['General Admission'],
         imageUrl: primaryPerformer?.image || '',
         eventUrl: event.url || '',
-        isAvailable, // Indicate if the show is purchasable
+        isAvailable,
       };
     });
 
-    // Log why shows might be filtered
     const validShows = shows.filter(show => show.isAvailable);
     console.log(`📊 Total events: ${shows.length}, Available shows: ${validShows.length}`);
     if (validShows.length === 0 && shows.length > 0) {
@@ -255,7 +263,7 @@ router.get('/', verifyApiKey, async (req, res) => {
 
     res.json({
       success: true,
-      shows: shows, // Return all shows, available or not
+      shows: shows,
       total: shows.length,
       timestamp: new Date().toISOString(),
     });
@@ -420,8 +428,8 @@ router.post('/:id/reserve', verifyApiKey, async (req, res) => {
     // Generate a seatId (simplified, as SeatGeek public API doesn't provide specific seat details)
     const seatId = `SEAT-${id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create Stripe Checkout Session
-    const checkoutResponse = await axios.post(`${BACKEND_API_URL}/api/payments/stripe/create-checkout-session`, {
+    // Create Stripe Checkout Session (assuming payments route is on the same server)
+    const checkoutResponse = await axios.post(`${req.protocol}://${req.get('host')}/api/payments/stripe/create-checkout-session`, {
       eventId: id,
       seatId: seatId,
       quantity: quantity,
