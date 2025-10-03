@@ -1,0 +1,47 @@
+diff --git a/node_modules/react-native-paypal-wrapper/android/.project b/node_modules/react-native-paypal-wrapper/android/.project
+new file mode 100644
+index 0000000..ae4ac57
+--- /dev/null
++++ b/node_modules/react-native-paypal-wrapper/android/.project
+@@ -0,0 +1,28 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<projectDescription>
++	<name>react-native-paypal-wrapper</name>
++	<comment>Project react-native-paypal-wrapper created by Buildship.</comment>
++	<projects>
++	</projects>
++	<buildSpec>
++		<buildCommand>
++			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
++			<arguments>
++			</arguments>
++		</buildCommand>
++	</buildSpec>
++	<natures>
++		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
++	</natures>
++	<filteredResources>
++		<filter>
++			<id>1759257854676</id>
++			<name></name>
++			<type>30</type>
++			<matcher>
++				<id>org.eclipse.core.resources.regexFilterMatcher</id>
++				<arguments>node_modules|\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
++			</matcher>
++		</filter>
++	</filteredResources>
++</projectDescription>
+diff --git a/node_modules/react-native-paypal-wrapper/android/build.gradle b/node_modules/react-native-paypal-wrapper/android/build.gradle
+index 0bb773d..4fa03fb 100644
+--- a/node_modules/react-native-paypal-wrapper/android/build.gradle
++++ b/node_modules/react-native-paypal-wrapper/android/build.gradle
+@@ -25,6 +25,6 @@ repositories {
+ }
+ 
+ dependencies {
+-    compile 'com.facebook.react:react-native:+'
+-    compile 'com.paypal.sdk:paypal-android-sdk:2.15.1'
++    implementation 'com.facebook.react:react-native:+'
++    implementation 'com.paypal.sdk:paypal-android-sdk:2.15.1'
+ }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "553385463777",
+    "project_id": "ticket-snipper-a02e4",
+    "storage_bucket": "ticket-snipper-a02e4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553385463777:android:9a7ec66174ddaba624cca0",
+        "android_client_info": {
+          "package_name": "app.rork.ticketsnipermobileapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyFImY0QArFvFEhoS2ZIQ0d_zdKB82Zsw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
