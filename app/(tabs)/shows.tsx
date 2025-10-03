@@ -87,6 +87,22 @@ export default function ShowsScreen() {
   } | null>(null);
   const [totalAmount, setTotalAmount] = useState(0);
 
+  // Initialize app and fetch shows on mount
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        await fetchShows();
+      } catch (err) {
+        console.error('Failed to initialize app:', err);
+      } finally {
+        setAppReady(true);
+        await SplashScreen.hideAsync();
+      }
+    };
+
+    initializeApp();
+  }, []);
+
   // Handle payment verification on return from Stripe
   useEffect(() => {
     const verifyPayment = async () => {
@@ -1055,6 +1071,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginBottom: 24,
+    alignSelf: 'center',
   },
   successMessage: {
     fontSize: 20,
