@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
+import Constants from 'expo-constants';
 import { Calendar, MapPin, Clock, RefreshCw, AlertCircle, CheckCircle, XCircle } from 'lucide-react-native';
 import { notify, NotificationType } from '@/services/notificationService';
 import { useTicketStore } from '@/store/ticketStore';
@@ -25,8 +26,8 @@ import { auth } from '@/services/firebaseConfig';
 import { ErrorHandler } from '@/services/errorHandler';
 import { logger } from '@/utils/logger';
 
-const BACKEND_API_URL = process.env.EXPO_PUBLIC_BACKEND_API_URL || 'https://ticket-snipper-backend.vercel.app';
-const TICKET_API_KEY = process.env.EXPO_PUBLIC_TICKET_API_KEY || '';
+const BACKEND_API_URL = Constants.expoConfig?.extra?.backendApiUrl || 'https://ticket-snipper-backend.vercel.app';
+const TICKET_API_KEY = Constants.expoConfig?.extra?.ticketApiKey || '';
 
 interface ApiShow {
   id: string;
