@@ -17,8 +17,13 @@
       "distribution": "internal",
       "node": "20.18.0",
       "bun": "1.1.38",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
+        "BACKEND_API_URL": "https://ticket-snipper-backend.vercel.app",
+        "TICKET_API_KEY": "4898a44d4bfdff515579da32729c995ae443898656b6125e67255b8816ff2742"
       }
     },
     "production": {
@@ -30,6 +35,8 @@
       },
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
+        "BACKEND_API_URL": "https://ticket-snipper-backend.vercel.app",
+        "TICKET_API_KEY": "4898a44d4bfdff515579da32729c995ae443898656b6125e67255b8816ff2742",
         "NODE_OPTIONS": "--max-old-space-size=4096"
       }
     }

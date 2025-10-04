@@ -26,8 +26,25 @@ import { auth } from '@/services/firebaseConfig';
 import { ErrorHandler } from '@/services/errorHandler';
 import { logger } from '@/utils/logger';
 
-const BACKEND_API_URL = Constants.expoConfig?.extra?.backendApiUrl || 'https://ticket-snipper-backend.vercel.app';
-const TICKET_API_KEY = Constants.expoConfig?.extra?.ticketApiKey || '';
+// More robust constant extraction with fallbacks
+
+// More robust constant extraction with fallbacks
+const BACKEND_API_URL = Constants.expoConfig?.extra?.backendApiUrl || 
+                        'https://ticket-snipper-backend.vercel.app';
+
+
+
+const TICKET_API_KEY = (Constants.expoConfig?.extra?.ticketApiKey || 
+                       '4898a44d4bfdff515579da32729c995ae443898656b6125e67255b8816ff2742').trim();                      
+
+
+//const BACKEND_API_URL = Constants.expoConfig?.extra?.backendApiUrl || 
+                        //Constants.manifest?.extra?.backendApiUrl || 
+                        'https://ticket-snipper-backend.vercel.app';
+
+//const TICKET_API_KEY = Constants.expoConfig?.extra?.ticketApiKey || 
+                       //Constants.manifest?.extra?.ticketApiKey || 
+                       '4898a44d4bfdff515579da32729c995ae443898656b6125e67255b8816ff2742';
 
 interface ApiShow {
   id: string;
@@ -87,6 +104,19 @@ export default function ShowsScreen() {
     showIds: string[];
   } | null>(null);
   const [totalAmount, setTotalAmount] = useState(0);
+
+  // Debug logging on mount
+  useEffect(() => {
+    console.log('=== Environment Debug Info ===');
+    console.log('Backend URL:', BACKEND_API_URL);
+    console.log('API Key present:', !!TICKET_API_KEY);
+    console.log('API Key length:', TICKET_API_KEY?.length);
+    console.log('API Key (first 20 chars):', TICKET_API_KEY?.substring(0, 20) + '...');
+    console.log('Constants.expoConfig:', Constants.expoConfig ? 'exists' : 'missing');
+    console.log('Constants.manifest:', Constants.manifest ? 'exists' : 'missing');
+    console.log('Full extra config:', JSON.stringify(Constants.expoConfig?.extra || {}, null, 2));
+    console.log('==============================');
+  }, []);
 
   // Initialize app and fetch shows on mount
   useEffect(() => {
@@ -187,69 +217,89 @@ export default function ShowsScreen() {
   }, [selectedShows, storeShows, shows]);
 
   const fetchShows = async (isRefresh = false) => {
-    try {
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      setError(null);
+  try {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
 
-      console.log('Fetching shows from:', `${BACKEND_API_URL}/api/shows`);
+    const requestUrl = `${BACKEND_API_URL}/api/shows`;
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-api-key': TICKET_API_KEY,
+    };
+    
+    console.log('=== Fetch Shows Request ===');
+    console.log('URL:', requestUrl);
+    console.log('Headers being sent:', JSON.stringify(headers, null, 2));
+    console.log('API Key (first 20 chars):', TICKET_API_KEY?.substring(0, 20) + '...');
+    console.log('API Key length:', TICKET_API_KEY?.length);
+    console.log('Full API Key:', TICKET_API_KEY); // Temporary - remove after testing
+    console.log('==========================');
 
-      const response = await fetch(`${BACKEND_API_URL}/api/shows`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': TICKET_API_KEY,
-        },
-      });
+    const response = await fetch(requestUrl, {
+      method: 'GET',
+      headers: headers,
+    });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to fetch shows: ${response.status} ${errorText}`);
-      }
+    console.log('=== Fetch Shows Response ===');
+    console.log('Status:', response.status);
+    console.log('Status Text:', response.statusText);
+    console.log('Response Headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
+    console.log('============================');
 
-      const data: ApiResponse = await response.json();
-      if (data.success && Array.isArray(data.shows)) {
-        const uniqueShows = Array.from(
-          new Map(data.shows.map(show => [show.id, show])).values()
-        );
-        setShows(uniqueShows);
-        uniqueShows.forEach(apiShow => {
-          if (!storeShows.some(s => s.id === apiShow.id)) {
-            addShow({
-              id: apiShow.id,
-              title: apiShow.title,
-              artist: apiShow.artist,
-              date: apiShow.date,
-              venue: apiShow.venue,
-              saleTime: apiShow.saleTime,
-              ticketUrl: apiShow.eventUrl || '',
-              preferences: {
-                section: apiShow.sections[0] || 'General',
-                maxPrice: apiShow.price || 100,
-                quantity: 1,
-              },
-              isActive: false,
-            });
-            notify.send(NotificationType.INFO, `Show added for ${apiShow.artist} - ${apiShow.title}`);
-          }
-        });
-        console.log(`Loaded ${uniqueShows.length} shows`);
-        if (!isRefresh) {
-          notify.send(NotificationType.SUCCESS, 'Shows loaded successfully');
-        }
-      } else {
-        throw new Error('Invalid response format from server');
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load shows';
-      console.error('Fetch shows error:', errorMessage);
-      setError(errorMessage);
-      notify.send(NotificationType.ERROR, `Error: ${errorMessage}`);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error Response Body:', errorText);
+      throw new Error(`Failed to fetch shows: ${response.status} ${response.statusText}\n${errorText}`);
     }
-  };
+
+    const data: ApiResponse = await response.json();
+    console.log('Parsed Response Data:', JSON.stringify(data, null, 2).substring(0, 500) + '...');
+    
+    if (data.success && Array.isArray(data.shows)) {
+      const uniqueShows = Array.from(
+        new Map(data.shows.map(show => [show.id, show])).values()
+      );
+      setShows(uniqueShows);
+      uniqueShows.forEach(apiShow => {
+        if (!storeShows.some(s => s.id === apiShow.id)) {
+          addShow({
+            id: apiShow.id,
+            title: apiShow.title,
+            artist: apiShow.artist,
+            date: apiShow.date,
+            venue: apiShow.venue,
+            saleTime: apiShow.saleTime,
+            ticketUrl: apiShow.eventUrl || '',
+            preferences: {
+              section: apiShow.sections[0] || 'General',
+              maxPrice: apiShow.price || 100,
+              quantity: 1,
+            },
+            isActive: false,
+          });
+          notify.send(NotificationType.INFO, `Show added for ${apiShow.artist} - ${apiShow.title}`);
+        }
+      });
+      console.log(`✅ Successfully loaded ${uniqueShows.length} shows`);
+      if (!isRefresh) {
+        notify.send(NotificationType.SUCCESS, 'Shows loaded successfully');
+      }
+    } else {
+      throw new Error('Invalid response format from server');
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to load shows';
+    console.error('❌ Fetch shows error:', errorMessage);
+    console.error('Error stack:', err instanceof Error ? err.stack : 'N/A');
+    setError(errorMessage);
+    notify.send(NotificationType.ERROR, `Error: ${errorMessage}`);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   const handleShowPress = (show: ApiShow) => {
     if (!show.isAvailable) {
@@ -430,8 +480,9 @@ export default function ShowsScreen() {
           <Text style={styles.errorTitle}>Failed to Load Shows</Text>
           <Text style={styles.errorMessage}>{error}</Text>
           <Text style={styles.errorHint}>
-            Check your backend connection at:{'\n'}
-            {BACKEND_API_URL}
+            Backend: {BACKEND_API_URL}{'\n'}
+            API Key: {TICKET_API_KEY ? '✓ Present' : '✗ Missing'}{'\n'}
+            Check your device logs for details
           </Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => fetchShows()}>
             <Text style={styles.retryButtonText}>Retry</Text>
@@ -619,543 +670,542 @@ export default function ShowsScreen() {
               </>
             ) : selectedShow && selectedShows.length === 1 && !fromQuickSnipe ? (
               <>
-                <Text style={styles.modalTitle}>Quick Purchase</Text>
+          
                 <Text style={styles.modalShowTitle}>{selectedShow.title}</Text>
                 <Text style={styles.modalShowDetails}>
-                  {selectedShow.artist} • {selectedShow.venue}, {selectedShow.city}
-                </Text>
-                <Text style={styles.modalShowDate}>{selectedShow.date}</Text>
-                <View style={styles.modalPriceRow}>
-                  <Text style={styles.modalPriceLabel}>Price per ticket:</Text>
-                  <Text style={styles.modalPriceValue}>${selectedShow.price.toFixed(2)}</Text>
-                </View>
-                <View style={styles.modalSeatsRow}>
-                  <Text style={styles.modalSeatsLabel}>Available Tickets:</Text>
-                  <Text style={styles.modalSeatsValue}>{selectedShow.availableSeats}</Text>
-                </View>
-                <View style={styles.modalSeatsRow}>
-                  <Text style={styles.modalSeatsLabel}>Sections:</Text>
-                  <Text style={styles.modalSeatsValue}>{selectedShow.sections.join(', ')}</Text>
-                </View>
-                <View style={styles.modalQuantityRow}>
-                  <Text style={styles.modalQuantityLabel}>Quantity:</Text>
-                  <TextInput
-                    style={styles.quantityInput}
-                    value={ticketQuantity}
-                    onChangeText={text => {
-                      setTicketQuantity(text);
-                      const quantity = parseInt(text, 10) || 1;
-                      storeShows.forEach(show => {
-                        if (show.id === selectedShow.id) {
-                          addShow({ ...show, preferences: { ...show.preferences, quantity } });
-                        }
-                      });
-                    }}
-                    keyboardType="numeric"
-                    placeholder="1"
-                    placeholderTextColor="#888888"
-                  />
-                </View>
-                <Text style={styles.modalWarning}>
-                  ⚡ You will be redirected to Stripe to complete your purchase
-                </Text>
-                <Text style={styles.modalPaymentInfo}>
-                  Payment methods: Credit Card, PayPal, Apple Pay (via Stripe)
-                </Text>
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity style={styles.cancelButton} onPress={handleCancelPayment}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.purchaseButton, paymentLoading && styles.buttonDisabled]}
-                    onPress={handlePayment}
-                    disabled={paymentLoading}
-                  >
-                    <LinearGradient colors={['#00D4FF', '#0099CC']} style={styles.buttonGradient}>
-                      <Text style={styles.buttonText}>Pay with Stripe</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              </>
+              {selectedShow.artist} • {selectedShow.venue}, {selectedShow.city}
+            </Text>
+            <Text style={styles.modalShowDate}>{selectedShow.date}</Text>
+            <View style={styles.modalPriceRow}>
+              <Text style={styles.modalPriceLabel}>Price per ticket:</Text>
+              <Text style={styles.modalPriceValue}>${selectedShow.price.toFixed(2)}</Text>
+            </View>
+            <View style={styles.modalSeatsRow}>
+              <Text style={styles.modalSeatsLabel}>Available Tickets:</Text>
+              <Text style={styles.modalSeatsValue}>{selectedShow.availableSeats}</Text>
+            </View>
+            <View style={styles.modalSeatsRow}>
+              <Text style={styles.modalSeatsLabel}>Sections:</Text>
+              <Text style={styles.modalSeatsValue}>{selectedShow.sections.join(', ')}</Text>
+            </View>
+            <View style={styles.modalQuantityRow}>
+              <Text style={styles.modalQuantityLabel}>Quantity:</Text>
+              <TextInput
+                style={styles.quantityInput}
+                value={ticketQuantity}
+                onChangeText={text => {
+                  setTicketQuantity(text);
+                  const quantity = parseInt(text, 10) || 1;
+                  storeShows.forEach(show => {
+                    if (show.id === selectedShow.id) {
+                      addShow({ ...show, preferences: { ...show.preferences, quantity } });
+                    }
+                  });
+                }}
+                keyboardType="numeric"
+                placeholder="1"
+                placeholderTextColor="#888888"
+              />
+            </View>
+            <Text style={styles.modalWarning}>
+              ⚡ You will be redirected to Stripe to complete your purchase
+            </Text>
+            <Text style={styles.modalPaymentInfo}>
+              Payment methods: Credit Card, PayPal, Apple Pay (via Stripe)
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCancelPayment}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.purchaseButton, paymentLoading && styles.buttonDisabled]}
+                onPress={handlePayment}
+                disabled={paymentLoading}
+              >
+                <LinearGradient colors={['#00D4FF', '#0099CC']} style={styles.buttonGradient}>
+                  <Text style={styles.buttonText}>Pay with Stripe</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.modalTitle}>Confirm Payment</Text>
+            <Text style={styles.sectionTitle}>Selected Shows</Text>
+            {selectedShows.length === 0 ? (
+              <Text style={styles.emptyText}>No shows selected</Text>
             ) : (
-              <>
-                <Text style={styles.modalTitle}>Confirm Payment</Text>
-                <Text style={styles.sectionTitle}>Selected Shows</Text>
-                {selectedShows.length === 0 ? (
-                  <Text style={styles.emptyText}>No shows selected</Text>
-                ) : (
-                  selectedShows.map(showId => {
-                    const show = storeShows.find(s => s.id === showId);
-                    return show ? (
-                      <View key={showId} style={styles.showItem}>
-                        <Text style={styles.showTitle}>{show.title}</Text>
-                        <Text style={styles.modalShowDetailsText}>
-                          Quantity: {show.preferences.quantity} | Price: ${show.preferences.maxPrice.toFixed(2)}
-                        </Text>
-                      </View>
-                    ) : null;
-                  })
-                )}
-                <View style={styles.totalContainer}>
-                  <Text style={styles.totalLabel}>Total Amount:</Text>
-                  <Text style={styles.totalValue}>${totalAmount.toFixed(2)}</Text>
-                </View>
-                <Text style={styles.modalWarning}>
-                  You will be redirected to Stripe to complete your purchase securely.
-                </Text>
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity style={styles.cancelButton} onPress={handleCancelPayment}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.purchaseButton, paymentLoading && styles.buttonDisabled]}
-                    onPress={handlePayment}
-                    disabled={paymentLoading}
-                  >
-                    <LinearGradient colors={['#00D4FF', '#0099CC']} style={styles.buttonGradient}>
-                      <Text style={styles.buttonText}>Pay with Stripe</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-              </>
+              selectedShows.map(showId => {
+                const show = storeShows.find(s => s.id === showId);
+                return show ? (
+                  <View key={showId} style={styles.showItem}>
+                    <Text style={styles.showTitle}>{show.title}</Text>
+                    <Text style={styles.modalShowDetailsText}>
+                      Quantity: {show.preferences.quantity} | Price: ${show.preferences.maxPrice.toFixed(2)}
+                    </Text>
+                  </View>
+                ) : null;
+              })
             )}
-          </View>
-        </View>
-      </Modal>
+            <View style={styles.totalContainer}>
+              <Text style={styles.totalLabel}>Total Amount:</Text>
+              <Text style={styles.totalValue}>${totalAmount.toFixed(2)}</Text>
+            </View>
+            <Text style={styles.modalWarning}>
+              You will be redirected to Stripe to complete your purchase securely.
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCancelPayment}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.purchaseButton, paymentLoading && styles.buttonDisabled]}
+                onPress={handlePayment}
+                disabled={paymentLoading}
+              >
+                <LinearGradient colors={['#00D4FF', '#0099CC']} style={styles.buttonGradient}>
+                  <Text style={styles.buttonText}>Pay with Stripe</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
     </View>
-  );
+  </Modal>
+</View>
+);
 }
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0A0B',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#888888',
-    marginTop: 4,
-  },
-  refreshButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#00D4FF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#888888',
-    marginTop: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 24,
-    marginBottom: 8,
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: '#FF3B82',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  errorHint: {
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  retryButton: {
-    backgroundColor: '#00D4FF',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 100,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 24,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    color: '#888888',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  emptyButton: {
-    backgroundColor: '#00D4FF',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  emptyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  showCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 16,
-  },
-  selectedShowCard: {
-    borderWidth: 2,
-    borderColor: '#00D4FF',
-  },
-  showGradient: {
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  showHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  showInfo: {
-    flex: 1,
-  },
-  showTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  showArtist: {
-    fontSize: 16,
-    color: '#CCCCCC',
-  },
-  priceContainer: {
-    alignItems: 'flex-end',
-    marginLeft: 16,
-  },
-  priceLabel: {
-    fontSize: 12,
-    color: '#888888',
-    marginBottom: 2,
-  },
-  priceValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#00FF88',
-  },
-  unavailablePrice: {
-    color: '#FF3B82',
-    fontStyle: 'italic',
-  },
-  showDetails: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  detailText: {
-    fontSize: 14,
-    color: '#CCCCCC',
-  },
-  availabilityContainer: {
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  availabilityBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  availabilityText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#0A0A0B',
-  },
-  tapToSecure: {
-    fontSize: 12,
-    color: '#00FF88',
-    fontStyle: 'italic',
-    fontWeight: '600',
-  },
-  checkoutButton: {
-    marginHorizontal: 24,
-    marginBottom: 24,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  checkoutGradient: {
-    padding: 18,
-    alignItems: 'center',
-  },
-  checkoutButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#1A1A1B',
-    borderRadius: 16,
-    padding: 24,
-    margin: 24,
-    minWidth: 300,
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#00D4FF',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  modalShowTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  modalShowDetails: {
-    fontSize: 14,
-    color: '#CCCCCC',
-    marginBottom: 4,
-  },
-  modalShowDate: {
-    fontSize: 14,
-    color: '#888888',
-    marginBottom: 16,
-  },
-  modalPriceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-  },
-  modalPriceLabel: {
-    fontSize: 16,
-    color: '#CCCCCC',
-  },
-  modalPriceValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#00FF88',
-  },
-  modalSeatsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  modalSeatsLabel: {
-    fontSize: 14,
-    color: '#CCCCCC',
-  },
-  modalSeatsValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#00D4FF',
-  },
-  modalQuantityRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  modalQuantityLabel: {
-    fontSize: 14,
-    color: '#CCCCCC',
-  },
-  quantityInput: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    color: '#FFFFFF',
-    borderRadius: 8,
-    padding: 8,
-    width: 60,
-    textAlign: 'center',
-    fontSize: 14,
-  },
-  modalWarning: {
-    fontSize: 12,
-    color: '#FFA500',
-    textAlign: 'center',
-    marginBottom: 12,
-    fontStyle: 'italic',
-  },
-  modalPaymentInfo: {
-    fontSize: 12,
-    color: '#CCCCCC',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  purchaseButton: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  buttonGradient: {
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  icon: {
-    marginBottom: 24,
-    alignSelf: 'center',
-  },
-  successMessage: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#00FF88',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  detailsContainer: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 12,
-  },
-  modalDetailItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  detailLabel: {
-    fontSize: 16,
-    color: '#CCCCCC',
-  },
-  detailValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  showItem: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  modalShowDetailsText: {
-    fontSize: 14,
-    color: '#CCCCCC',
-  },
-  totalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12,
-    marginVertical: 16,
-  },
-  totalLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  totalValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00FF88',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#CCCCCC',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#FF3B82',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  modalRetryButton: {
-    flex: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  continueButton: {
-    width: '100%',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
+container: {
+flex: 1,
+backgroundColor: '#0A0A0B',
+},
+header: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+alignItems: 'center',
+paddingHorizontal: 24,
+paddingVertical: 16,
+},
+title: {
+fontSize: 28,
+fontWeight: 'bold',
+color: '#FFFFFF',
+},
+subtitle: {
+fontSize: 14,
+color: '#888888',
+marginTop: 4,
+},
+refreshButton: {
+width: 44,
+height: 44,
+borderRadius: 22,
+backgroundColor: '#00D4FF',
+alignItems: 'center',
+justifyContent: 'center',
+},
+content: {
+flex: 1,
+},
+loadingContainer: {
+flex: 1,
+alignItems: 'center',
+justifyContent: 'center',
+},
+loadingText: {
+fontSize: 16,
+color: '#888888',
+marginTop: 16,
+},
+errorContainer: {
+flex: 1,
+alignItems: 'center',
+justifyContent: 'center',
+paddingHorizontal: 24,
+},
+errorTitle: {
+fontSize: 24,
+fontWeight: 'bold',
+color: '#FFFFFF',
+marginTop: 24,
+marginBottom: 8,
+},
+errorMessage: {
+fontSize: 16,
+color: '#FF3B82',
+textAlign: 'center',
+marginBottom: 8,
+},
+errorHint: {
+fontSize: 12,
+color: '#666666',
+textAlign: 'center',
+marginBottom: 32,
+},
+retryButton: {
+backgroundColor: '#00D4FF',
+paddingHorizontal: 32,
+paddingVertical: 16,
+borderRadius: 12,
+},
+retryButtonText: {
+fontSize: 16,
+fontWeight: '600',
+color: '#FFFFFF',
+},
+emptyState: {
+flex: 1,
+alignItems: 'center',
+justifyContent: 'center',
+paddingHorizontal: 24,
+paddingTop: 100,
+},
+emptyTitle: {
+fontSize: 24,
+fontWeight: 'bold',
+color: '#FFFFFF',
+marginTop: 24,
+marginBottom: 8,
+},
+emptySubtitle: {
+fontSize: 16,
+color: '#888888',
+textAlign: 'center',
+marginBottom: 32,
+},
+emptyButton: {
+backgroundColor: '#00D4FF',
+paddingHorizontal: 32,
+paddingVertical: 16,
+borderRadius: 12,
+},
+emptyButtonText: {
+fontSize: 16,
+fontWeight: '600',
+color: '#FFFFFF',
+},
+showCard: {
+borderRadius: 16,
+overflow: 'hidden',
+marginHorizontal: 16,
+marginBottom: 16,
+},
+selectedShowCard: {
+borderWidth: 2,
+borderColor: '#00D4FF',
+},
+showGradient: {
+padding: 20,
+borderWidth: 1,
+borderColor: 'rgba(255,255,255,0.1)',
+},
+showHeader: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+alignItems: 'flex-start',
+marginBottom: 16,
+},
+showInfo: {
+flex: 1,
+},
+showTitle: {
+fontSize: 20,
+fontWeight: 'bold',
+color: '#FFFFFF',
+marginBottom: 4,
+},
+showArtist: {
+fontSize: 16,
+color: '#CCCCCC',
+},
+priceContainer: {
+alignItems: 'flex-end',
+marginLeft: 16,
+},
+priceLabel: {
+fontSize: 12,
+color: '#888888',
+marginBottom: 2,
+},
+priceValue: {
+fontSize: 24,
+fontWeight: 'bold',
+color: '#00FF88',
+},
+unavailablePrice: {
+color: '#FF3B82',
+fontStyle: 'italic',
+},
+showDetails: {
+gap: 8,
+marginBottom: 16,
+},
+detailItem: {
+flexDirection: 'row',
+alignItems: 'center',
+gap: 8,
+},
+detailText: {
+fontSize: 14,
+color: '#CCCCCC',
+},
+availabilityContainer: {
+alignItems: 'flex-start',
+gap: 8,
+},
+availabilityBadge: {
+paddingHorizontal: 12,
+paddingVertical: 6,
+borderRadius: 12,
+},
+availabilityText: {
+fontSize: 12,
+fontWeight: '600',
+color: '#0A0A0B',
+},
+tapToSecure: {
+fontSize: 12,
+color: '#00FF88',
+fontStyle: 'italic',
+fontWeight: '600',
+},
+checkoutButton: {
+marginHorizontal: 24,
+marginBottom: 24,
+borderRadius: 16,
+overflow: 'hidden',
+},
+checkoutGradient: {
+padding: 18,
+alignItems: 'center',
+},
+checkoutButtonText: {
+fontSize: 18,
+fontWeight: '600',
+color: '#FFFFFF',
+},
+modalOverlay: {
+flex: 1,
+backgroundColor: 'rgba(0,0,0,0.7)',
+justifyContent: 'center',
+alignItems: 'center',
+},
+modalContent: {
+backgroundColor: '#1A1A1B',
+borderRadius: 16,
+padding: 24,
+margin: 24,
+minWidth: 300,
+maxWidth: 400,
+},
+modalTitle: {
+fontSize: 24,
+fontWeight: 'bold',
+color: '#00D4FF',
+marginBottom: 16,
+textAlign: 'center',
+},
+modalShowTitle: {
+fontSize: 20,
+fontWeight: 'bold',
+color: '#FFFFFF',
+marginBottom: 4,
+},
+modalShowDetails: {
+fontSize: 14,
+color: '#CCCCCC',
+marginBottom: 4,
+},
+modalShowDate: {
+fontSize: 14,
+color: '#888888',
+marginBottom: 16,
+},
+modalPriceRow: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+alignItems: 'center',
+paddingVertical: 8,
+borderTopWidth: 1,
+borderTopColor: 'rgba(255,255,255,0.1)',
+},
+modalPriceLabel: {
+fontSize: 16,
+color: '#CCCCCC',
+},
+modalPriceValue: {
+fontSize: 24,
+fontWeight: 'bold',
+color: '#00FF88',
+},
+modalSeatsRow: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+alignItems: 'center',
+paddingVertical: 8,
+},
+modalSeatsLabel: {
+fontSize: 14,
+color: '#CCCCCC',
+},
+modalSeatsValue: {
+fontSize: 14,
+fontWeight: '600',
+color: '#00D4FF',
+},
+modalQuantityRow: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+alignItems: 'center',
+paddingVertical: 8,
+},
+modalQuantityLabel: {
+fontSize: 14,
+color: '#CCCCCC',
+},
+quantityInput: {
+backgroundColor: 'rgba(255,255,255,0.1)',
+color: '#FFFFFF',
+borderRadius: 8,
+padding: 8,
+width: 60,
+textAlign: 'center',
+fontSize: 14,
+},
+modalWarning: {
+fontSize: 12,
+color: '#FFA500',
+textAlign: 'center',
+marginBottom: 12,
+fontStyle: 'italic',
+},
+modalPaymentInfo: {
+fontSize: 12,
+color: '#CCCCCC',
+textAlign: 'center',
+marginBottom: 24,
+},
+modalButtons: {
+flexDirection: 'row',
+gap: 12,
+},
+cancelButton: {
+flex: 1,
+backgroundColor: 'rgba(255,255,255,0.1)',
+borderRadius: 12,
+paddingVertical: 14,
+alignItems: 'center',
+},
+cancelButtonText: {
+fontSize: 16,
+fontWeight: '600',
+color: '#FFFFFF',
+},
+purchaseButton: {
+flex: 1,
+borderRadius: 12,
+overflow: 'hidden',
+},
+buttonGradient: {
+paddingVertical: 14,
+alignItems: 'center',
+},
+buttonText: {
+fontSize: 16,
+fontWeight: '600',
+color: '#FFFFFF',
+},
+buttonDisabled: {
+opacity: 0.7,
+},
+icon: {
+marginBottom: 24,
+alignSelf: 'center',
+},
+successMessage: {
+fontSize: 20,
+fontWeight: '600',
+color: '#00FF88',
+textAlign: 'center',
+marginBottom: 24,
+},
+detailsContainer: {
+width: '100%',
+backgroundColor: 'rgba(255,255,255,0.05)',
+borderRadius: 12,
+padding: 16,
+marginBottom: 24,
+},
+sectionTitle: {
+fontSize: 18,
+fontWeight: '600',
+color: '#FFFFFF',
+marginBottom: 12,
+},
+modalDetailItem: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+marginBottom: 8,
+},
+detailLabel: {
+fontSize: 16,
+color: '#CCCCCC',
+},
+detailValue: {
+fontSize: 16,
+fontWeight: '600',
+color: '#FFFFFF',
+},
+showItem: {
+backgroundColor: 'rgba(255,255,255,0.03)',
+borderRadius: 8,
+padding: 12,
+marginBottom: 8,
+},
+modalShowDetailsText: {
+fontSize: 14,
+color: '#CCCCCC',
+},
+totalContainer: {
+flexDirection: 'row',
+justifyContent: 'space-between',
+padding: 16,
+backgroundColor: 'rgba(255,255,255,0.05)',
+borderRadius: 12,
+marginVertical: 16,
+},
+totalLabel: {
+fontSize: 18,
+fontWeight: '600',
+color: '#FFFFFF',
+},
+totalValue: {
+fontSize: 18,
+fontWeight: 'bold',
+color: '#00FF88',
+},
+emptyText: {
+fontSize: 16,
+color: '#CCCCCC',
+textAlign: 'center',
+marginBottom: 16,
+},
+errorText: {
+fontSize: 16,
+color: '#FF3B82',
+textAlign: 'center',
+marginBottom: 16,
+},
+modalRetryButton: {
+flex: 1,
+borderRadius: 12,
+overflow: 'hidden',
+},
+continueButton: {
+width: '100%',
+borderRadius: 12,
+overflow: 'hidden',
+},
 });
